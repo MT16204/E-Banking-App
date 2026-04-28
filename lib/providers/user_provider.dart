@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart' as models;
 import 'package:appwrite/appwrite.dart';
+
+import '../data/repositories/cards_repository.dart';
+import '../data/repositories/current_user_repository.dart';
 import '../data/models/models.dart';
-import '../main.dart';
+import '../data/repositories/notification_repository.dart';
+import '../data/repositories/transactions_repository.dart';
+import '../data/repositories/wallet_repository.dart';
 import '../providers/appearance_provider.dart';
 
 class TransferSuccessNotification {
@@ -25,6 +30,11 @@ class UserProvider extends ChangeNotifier {
   List<CardModel> _cards = [];
   TransferSuccessNotification? _pendingTransferNotification;
   bool _isLoading = false;
+  CurrentUserRepository? _currentUserRepository;
+  WalletRepository? _walletRepository;
+  TransactionsRepository? _transactionsRepository;
+  CardsRepository? _cardsRepository;
+  NotificationRepository? _notificationRepository;
 
   models.User? get user => _user;
   WalletModel? get wallet => _wallet;
@@ -35,21 +45,15 @@ class UserProvider extends ChangeNotifier {
       _pendingTransferNotification;
   bool get isLoading => _isLoading;
 
-  static const _dbId = '695ec15a0017be03292c';
-  static const _colCards = 'cards';
-  static const _colWallets = 'wallets';
-  static const _colTx = 'transactions';
-  static const _colNotif = 'notification';
-
-  String get databaseId => _dbId;
-
   // ── fetchUser ─────────────────────────────────────────────────────────────
 
   Future<void> fetchUser(Account account) async {
     _isLoading = true;
     notifyListeners();
     try {
-      _user = await account.get();
+      final currentUserRepo = _currentUserRepository;
+      if (currentUserRepo == null) return;
+      _user = await currentUserRepo.getCurrentUser();
 
       if (_user != null) {
         await Future.wait([
@@ -69,31 +73,13 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  Map<String, dynamic> _docToMap(models.Document doc) => {
-    '\$id': doc.$id,
-    ...doc.data,
-  };
-
   // ── Cards ─────────────────────────────────────────────────────────────────
 
   Future<void> fetchCards(String userId) async {
-    try {
-      final db = Databases(client);
-      final res = await db.listDocuments(
-        databaseId: _dbId,
-        collectionId: _colCards,
-        queries: [
-          Query.equal('userId', userId),
-          Query.orderDesc('\$createdAt'),
-        ],
-      );
-      _cards = res.documents
-          .map((d) => CardModel.fromMap(_docToMap(d)))
-          .toList();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Lỗi lấy thẻ: $e');
-    }
+    final repo = _cardsRepository;
+    if (repo == null) return;
+    _cards = await repo.fetchCards(userId);
+    notifyListeners();
   }
 
   Future<CardModel?> addCard({
@@ -103,101 +89,62 @@ class UserProvider extends ChangeNotifier {
     String? expiryDate,
   }) async {
     if (_user == null) return null;
-    try {
-      final db = Databases(client);
-      final doc = await db.createDocument(
-        databaseId: _dbId,
-        collectionId: _colCards,
-        documentId: ID.unique(),
-        data: {
-          'userId': _user!.$id,
-          'cardName': cardName,
-          'cardNumber': cardNumber,
-          'cardType': cardType,
-          'status': 'active',
-          if (expiryDate != null) 'expiryDate': expiryDate,
-        },
-      );
-      final newCard = CardModel.fromMap(_docToMap(doc));
+    final repo = _cardsRepository;
+    if (repo == null) return null;
+    final newCard = await repo.addCard(
+      userId: _user!.$id,
+      cardName: cardName,
+      cardNumber: cardNumber,
+      cardType: cardType,
+      expiryDate: expiryDate,
+    );
+    if (newCard != null) {
       _cards = [newCard, ..._cards];
       notifyListeners();
-      return newCard;
-    } catch (e) {
-      debugPrint('Lỗi thêm thẻ: $e');
-      return null;
     }
+    return newCard;
   }
 
   Future<bool> deleteCard(String cardId) async {
-    try {
-      await Databases(client).deleteDocument(
-        databaseId: _dbId,
-        collectionId: _colCards,
-        documentId: cardId,
-      );
+    final repo = _cardsRepository;
+    if (repo == null) return false;
+    final ok = await repo.deleteCard(cardId);
+    if (ok) {
       _cards.removeWhere((c) => c.id == cardId);
       notifyListeners();
-      return true;
-    } catch (e) {
-      debugPrint('Lỗi xóa thẻ: $e');
-      return false;
     }
+    return ok;
   }
 
   Future<bool> toggleCardStatus(CardModel card) async {
-    final newStatus = card.isActive ? 'locked' : 'active';
-    try {
-      await Databases(client).updateDocument(
-        databaseId: _dbId,
-        collectionId: _colCards,
-        documentId: card.id,
-        data: {'status': newStatus},
-      );
+    final repo = _cardsRepository;
+    if (repo == null) return false;
+    final updated = await repo.toggleCardStatus(card);
+    if (updated != null) {
       final idx = _cards.indexWhere((c) => c.id == card.id);
       if (idx != -1) {
-        _cards[idx] = CardModel.fromMap({
-          ...card.toMap(),
-          '\$id': card.id,
-          'status': newStatus,
-        });
+        _cards[idx] = updated;
         notifyListeners();
       }
       return true;
-    } catch (e) {
-      debugPrint('Lỗi cập nhật trạng thái thẻ: $e');
-      return false;
     }
+    return false;
   }
 
   // ── Notifications ─────────────────────────────────────────────────────────
 
   Future<void> fetchNotifications(String userId) async {
-    try {
-      final res = await Databases(client).listDocuments(
-        databaseId: _dbId,
-        collectionId: _colNotif,
-        queries: [
-          Query.equal('userId', userId),
-          Query.orderDesc('createdAt'),
-          Query.limit(20),
-        ],
-      );
-      _notifications = res.documents
-          .map((d) => NotificationModel.fromMap(d.data))
-          .toList();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Lỗi lấy thông báo: $e');
-    }
+    final repo = _notificationRepository;
+    if (repo == null) return;
+    _notifications = await repo.fetchNotifications(userId);
+    notifyListeners();
   }
 
   Future<void> deleteNotification(String notificationId) async {
     try {
-      await Databases(client).deleteDocument(
-        databaseId: _dbId,
-        collectionId: _colNotif,
-        documentId: notificationId,
-      );
+      final repo = _notificationRepository;
+      if (repo == null) return;
+      await repo.deleteNotification(notificationId);
       _notifications.removeWhere((n) => n.id == notificationId);
       notifyListeners();
     } catch (e) {
@@ -208,42 +155,19 @@ class UserProvider extends ChangeNotifier {
   // ── Wallet ────────────────────────────────────────────────────────────────
 
   Future<void> fetchWallet(String userId) async {
-    try {
-      final res = await Databases(client).getDocument(
-        databaseId: _dbId,
-        collectionId: _colWallets,
-        documentId: userId,
-      );
-      _wallet = WalletModel.fromMap(res.data);
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Lỗi lấy ví: $e');
-    }
+    final repo = _walletRepository;
+    if (repo == null) return;
+    _wallet = await repo.getWalletByUserId(userId);
+    notifyListeners();
   }
 
   // ── Transactions ──────────────────────────────────────────────────────────
 
   Future<void> fetchTransactions(String userId) async {
-    try {
-      final res = await Databases(client).listDocuments(
-        databaseId: _dbId,
-        collectionId: _colTx,
-        queries: [
-          Query.or([
-            Query.equal('senderId', userId),
-            Query.equal('receiverId', userId),
-          ]),
-          Query.orderDesc('\$createdAt'),
-          Query.limit(100),
-        ],
-      );
-      _transactions = res.documents
-          .map((d) => TransactionModel.fromMap(d.data))
-          .toList();
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Lỗi lấy lịch sử giao dịch: $e');
-    }
+    final repo = _transactionsRepository;
+    if (repo == null) return;
+    _transactions = await repo.fetchTransactions(userId);
+    notifyListeners();
   }
 
   // ── Misc ──────────────────────────────────────────────────────────────────
@@ -277,22 +201,33 @@ class UserProvider extends ChangeNotifier {
   }
 
   void subscribeToUpdates() {
-    final realtime = Realtime(client);
-    realtime
-        .subscribe([
-          'databases.$_dbId.collections.$_colTx.documents',
-          'databases.$_dbId.collections.$_colNotif.documents',
-          'databases.$_dbId.collections.$_colCards.documents',
-        ])
-        .stream
-        .listen((_) {
-          if (_user != null) fetchUser(account);
-        });
+    // Realtime hiện chưa tách theo bloc, giữ trống để tránh provider tiếp tục
+    // ôm logic subscription toàn cục.
   }
 
   AppearanceProvider? _appearanceProvider;
 
   void setAppearanceProvider(AppearanceProvider p) {
     _appearanceProvider = p;
+  }
+
+  void setCurrentUserRepository(CurrentUserRepository repository) {
+    _currentUserRepository = repository;
+  }
+
+  void setWalletRepository(WalletRepository repository) {
+    _walletRepository = repository;
+  }
+
+  void setTransactionsRepository(TransactionsRepository repository) {
+    _transactionsRepository = repository;
+  }
+
+  void setCardsRepository(CardsRepository repository) {
+    _cardsRepository = repository;
+  }
+
+  void setNotificationRepository(NotificationRepository repository) {
+    _notificationRepository = repository;
   }
 }

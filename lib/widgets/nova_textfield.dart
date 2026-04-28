@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../theme/colors.dart';
-import '../theme/fonts.dart';
+import '../core/theme/colors.dart';
+import '../core/theme/fonts.dart';
 
 class NovaTextField extends StatelessWidget {
   final TextEditingController controller;
@@ -10,7 +10,7 @@ class NovaTextField extends StatelessWidget {
   final String? errorText;
   final TextInputType keyboardType;
   final Function(String)? onChanged;
-  final VoidCallback? onSuffixIconPressed; // Thêm dòng này
+  final VoidCallback? onSuffixIconPressed; 
 
   const NovaTextField({
     super.key,
@@ -21,7 +21,7 @@ class NovaTextField extends StatelessWidget {
     this.errorText,
     this.keyboardType = TextInputType.text,
     this.onChanged,
-    this.onSuffixIconPressed, // Thêm dòng này
+    this.onSuffixIconPressed, 
   });
 
   @override
@@ -37,7 +37,6 @@ class NovaTextField extends StatelessWidget {
         prefixIcon: icon != null
             ? Icon(icon, color: Colors.white54, size: 20)
             : null,
-        // Thêm SuffixIcon để ẩn/hiện mật khẩu
         suffixIcon: onSuffixIconPressed != null
             ? IconButton(
                 icon: Icon(

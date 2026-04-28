@@ -5,8 +5,8 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import '../providers/language_provider.dart';
 import '../providers/user_provider.dart';
-import '../theme/colors.dart';
-import '../theme/fonts.dart';
+import '../core/theme/colors.dart';
+import '../core/theme/fonts.dart';
 
 class BalanceCard extends StatefulWidget {
   final bool balanceHidden;
@@ -406,7 +406,7 @@ class _BalanceCardState extends State<BalanceCard>
 }
 
 // ============================================================================
-// SlotBalance — orchestrates per-digit slot machines
+// SlotBalance
 // ============================================================================
 class _SlotBalance extends StatefulWidget {
   final double balance;
@@ -504,7 +504,7 @@ class _SlotBalanceState extends State<_SlotBalance> {
 }
 
 // ============================================================================
-// SlotDigit — spins continuously 0→9 then snaps to targetDigit
+// SlotDigit
 // ============================================================================
 class _SlotDigit extends StatefulWidget {
   final int targetDigit;
@@ -532,7 +532,6 @@ class _SlotDigitState extends State<_SlotDigit>
   void initState() {
     super.initState();
 
-    // Total scroll distance: spinRounds full cycles + land on target
     final totalSteps = _spinRounds * 10 + widget.targetDigit;
 
     _ctrl = AnimationController(
@@ -542,13 +541,11 @@ class _SlotDigitState extends State<_SlotDigit>
       ),
     );
 
-    // Decelerate: fast spin → slow land
     _anim = Tween<double>(
       begin: 0,
       end: totalSteps.toDouble(),
     ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
 
-    // Wait for stagger then fire
     Future.delayed(widget.staggerDelay, () {
       if (mounted) _ctrl.forward();
     });
@@ -569,20 +566,15 @@ class _SlotDigitState extends State<_SlotDigit>
         child: AnimatedBuilder(
           animation: _anim,
           builder: (_, __) {
-            // _anim.value is the continuous scroll offset (in digit units)
-            // We translate the column of digits upward
             final offset = _anim.value % 10;
-            final baseIndex = _anim.value ~/ 1; // integer part
+            final baseIndex = _anim.value ~/ 1; 
 
             return Stack(
               children: List.generate(4, (i) {
-                // Show 4 digits in the window at any time for smooth roll
                 final digitIndex = (baseIndex + i) % 10;
                 final yPos =
                     (i - offset % 1) * _digitHeight -
                     (_digitHeight * (offset % 1));
-
-                // Fade out digits near top/bottom edges
                 const center = _digitHeight / 2;
                 final distFromCenter = (yPos + _digitHeight / 2 - center).abs();
                 final opacity = (1.0 - distFromCenter / (_digitHeight * 1.5))

@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/appearance_provider.dart';
-import '../theme/fonts.dart';
+import '../core/theme/fonts.dart';
 
 // =============================================================================
 // AppBackground
-// Dùng để wrap Scaffold body — tự đọc AppearanceProvider
 // =============================================================================
 
 class AppBackground extends StatelessWidget {
@@ -138,8 +137,6 @@ double _sin(double x) {
 
 // =============================================================================
 // AppAvatar
-// Hiển thị avatar theo preset đã chọn, fallback về chữ cái đầu của tên
-// Border và màu chữ đọc từ currentTheme — đổi theo theme realtime
 // =============================================================================
 
 class AppAvatar extends StatelessWidget {
@@ -152,7 +149,6 @@ class AppAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final appearance = context.watch<AppearanceProvider>();
     final preset = appearance.currentAvatar;
-    // ✅ Đọc màu từ theme hiện tại thay vì hardcode NovaColors.primaryGreen
     final themeColor = appearance.currentTheme.primary;
 
     final initials = _getInitials(displayName);

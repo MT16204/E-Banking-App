@@ -4,18 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../providers/appearance_provider.dart';
 import '../providers/language_provider.dart';
-import '../theme/colors.dart';
-import '../theme/fonts.dart';
-
-// =============================================================================
-// Hàm tiện ích — gọi từ ProfileScreen
-//
-// showAvatarSheet()  — bottom sheet chọn avatar (giữ nguyên)
-// showThemeSheet()   — bottom sheet chọn giao diện màu (giữ nguyên)
-//
-// showBackgroundSheet() đã được thay bằng BackgroundPickerScreen (trang riêng).
-// Xem: screens/background_picker_screen.dart
-// =============================================================================
+import '../core/theme/colors.dart';
+import '../core/theme/fonts.dart';
 
 Future<void> showAvatarSheet(BuildContext context) {
   return showModalBottomSheet(
@@ -280,7 +270,6 @@ class _ThemeSheetState extends State<_ThemeSheet> {
               ),
               child: Row(
                 children: [
-                  // Color swatch gradient
                   Container(
                     width: 44,
                     height: 44,
@@ -329,7 +318,6 @@ class _ThemeSheetState extends State<_ThemeSheet> {
                       ],
                     ),
                   ),
-                  // Check / chevron
                   if (selected)
                     Container(
                       width: 26,

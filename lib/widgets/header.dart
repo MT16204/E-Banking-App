@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../theme/colors.dart';
-import '../theme/fonts.dart';
+import '../core/theme/colors.dart';
+import '../core/theme/fonts.dart';
 
-/// - [Header.withTitle]  — back button + title text + optional action
-/// - [Header.iconOnly]   — chỉ back button + optional action (dùng cho Profile)
+/// - [Header.withTitle]
+/// - [Header.iconOnly] 
 class Header extends StatelessWidget {
   final VoidCallback? onBack;
   final String? title;
@@ -21,7 +21,6 @@ class Header extends StatelessWidget {
   }) : _iconOnly = iconOnly,
        _centerTitle = centerTitle;
 
-  /// Back button + title + optional right action widget.
   factory Header.withTitle({
     required String title,
     VoidCallback? onBack,
@@ -35,7 +34,6 @@ class Header extends StatelessWidget {
     centerTitle: centerTitle,
   );
 
-  /// Chỉ back button + optional right action (Profile).
   factory Header.iconOnly({VoidCallback? onBack, Widget? action}) =>
       Header._(
         onBack: onBack,

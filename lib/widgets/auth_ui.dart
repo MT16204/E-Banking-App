@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
-import '../theme/colors.dart';
-import '../theme/fonts.dart';
+import '../core/theme/colors.dart';
+import '../core/theme/fonts.dart';
 
 class AuthScene extends StatelessWidget {
   final Widget child;
@@ -16,7 +16,6 @@ class AuthScene extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final t = NovaTheme.watch(context);
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,

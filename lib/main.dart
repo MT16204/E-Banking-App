@@ -1,38 +1,65 @@
-import 'package:banking_app/config/app_config.dart';
+import 'package:banking_app/core/config/app_config.dart';
 import 'package:banking_app/data/repositories/auth_repository.dart';
+import 'package:banking_app/data/repositories/cards_repository.dart';
+import 'package:banking_app/data/repositories/current_user_repository.dart';
+import 'package:banking_app/data/repositories/notification_repository.dart';
+import 'package:banking_app/data/repositories/transfer_repository.dart';
+import 'package:banking_app/data/repositories/transactions_repository.dart';
+import 'package:banking_app/data/repositories/wallet_repository.dart';
 import 'package:banking_app/data/services/auth_services.dart';
-import 'package:banking_app/screens/analytics_screen.dart';
-import 'package:banking_app/screens/auth/create_password_screen.dart';
-import 'package:banking_app/screens/auth/forgor_password_screen.dart';
-import 'package:banking_app/screens/auth/otp_screen.dart';
-import 'package:banking_app/screens/auth/reset_password_screen.dart';
-import 'package:banking_app/screens/auth/signup_screen.dart';
-import 'package:banking_app/screens/auth/verify_screen.dart';
-import 'package:banking_app/screens/background_picker.dart';
-import 'package:banking_app/screens/change_password_screen.dart';
-import 'package:banking_app/screens/notification_screen.dart';
-import 'package:banking_app/screens/splash_screen.dart';
-import 'package:banking_app/screens/transaction_screen.dart';
+import 'package:banking_app/features/analytics/screens/analytics_screen.dart';
+import 'package:banking_app/features/auth/screens/create_password_screen.dart';
+import 'package:banking_app/features/auth/screens/forgor_password_screen.dart';
+import 'package:banking_app/features/auth/screens/login_screen.dart';
+import 'package:banking_app/features/auth/screens/otp_screen.dart';
+import 'package:banking_app/features/auth/screens/reset_password_screen.dart';
+import 'package:banking_app/features/auth/screens/signup_screen.dart';
+import 'package:banking_app/features/auth/screens/signup_success_screen.dart';
+import 'package:banking_app/features/auth/screens/splash_screen.dart';
+import 'package:banking_app/features/auth/screens/verify_screen.dart';
+import 'package:banking_app/features/cards/screens/card_screen.dart';
+import 'package:banking_app/features/home/screens/home_screen.dart';
+import 'package:banking_app/features/notifications/screens/notification_screen.dart';
+import 'package:banking_app/features/payments/screens/qr_payment_screen.dart';
+import 'package:banking_app/features/payments/screens/transaction_screen.dart';
+import 'package:banking_app/features/profile/screens/background_picker.dart';
+import 'package:banking_app/features/profile/screens/change_password_screen.dart';
+import 'package:banking_app/features/profile/screens/profile_screen.dart';
+import 'package:banking_app/features/security/screens/smart_otp_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:appwrite/appwrite.dart';
 import 'package:provider/provider.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/auth/signup_success_screen.dart';
-import 'screens/profile_screen.dart';
 import 'package:banking_app/providers/language_provider.dart';
 import 'package:banking_app/providers/user_provider.dart';
 import 'package:banking_app/providers/appearance_provider.dart';
-import 'package:banking_app/screens/qr_payment_screen.dart';
-import 'package:banking_app/screens/card_screen.dart';
-import 'package:banking_app/screens/smart_otp_screen.dart';
+import 'package:banking_app/features/analytics/bloc/analytics_bloc.dart';
+import 'package:banking_app/features/analytics/bloc/analytics_event.dart';
+import 'package:banking_app/features/auth/bloc/auth_bloc.dart';
+import 'package:banking_app/features/auth/bloc/auth_event.dart';
+import 'package:banking_app/features/cards/bloc/cards_bloc.dart';
+import 'package:banking_app/features/cards/bloc/cards_event.dart';
+import 'package:banking_app/features/home/bloc/home_bloc.dart';
+import 'package:banking_app/features/home/bloc/home_event.dart';
+import 'package:banking_app/features/notifications/bloc/notifications_bloc.dart';
+import 'package:banking_app/features/notifications/bloc/notifications_event.dart';
+import 'package:banking_app/features/payments/bloc/payments_bloc.dart';
+import 'package:banking_app/features/payments/bloc/payments_event.dart';
+import 'package:banking_app/features/profile/bloc/profile_bloc.dart';
+import 'package:banking_app/features/profile/bloc/profile_event.dart';
 
 late Client client;
 late Account account;
 late AuthService authService;
 late AuthRepository authRepository;
+late CurrentUserRepository currentUserRepository;
+late WalletRepository walletRepository;
+late NotificationRepository notificationRepository;
+late TransferRepository transferRepository;
+late TransactionsRepository transactionsRepository;
+late CardsRepository cardsRepository;
 late Databases databases;
 late LanguageProvider languageProvider;
 
@@ -52,7 +79,6 @@ void main() async {
     ),
   );
 
-  // ✅ Kiểm tra ngay — crash rõ ràng nếu quên truyền --dart-define
   AppConfig.validate();
 
   client = Client()
@@ -62,6 +88,12 @@ void main() async {
   account = Account(client);
   databases = Databases(client);
   authService = AuthService(account);
+  currentUserRepository = CurrentUserRepository(account);
+  walletRepository = WalletRepository(databases);
+  notificationRepository = NotificationRepository(databases);
+  transferRepository = TransferRepository(databases, notificationRepository);
+  transactionsRepository = TransactionsRepository(databases);
+  cardsRepository = CardsRepository(databases);
   authRepository = AuthRepository(authService, databases);
   languageProvider = LanguageProvider();
   await languageProvider.load();
@@ -69,7 +101,12 @@ void main() async {
   final appearanceProvider = AppearanceProvider();
 
   final userProvider = UserProvider()
-    ..setAppearanceProvider(appearanceProvider);
+    ..setAppearanceProvider(appearanceProvider)
+    ..setCurrentUserRepository(currentUserRepository)
+    ..setWalletRepository(walletRepository)
+    ..setTransactionsRepository(transactionsRepository)
+    ..setCardsRepository(cardsRepository)
+    ..setNotificationRepository(notificationRepository);
 
   String startRoute = '/login';
   bool isLoggedIn = false;
@@ -88,13 +125,70 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<AuthRepository>.value(value: authRepository),
+        Provider<CurrentUserRepository>.value(value: currentUserRepository),
+        Provider<WalletRepository>.value(value: walletRepository),
+        Provider<NotificationRepository>.value(value: notificationRepository),
+        Provider<TransferRepository>.value(value: transferRepository),
+        Provider<TransactionsRepository>.value(value: transactionsRepository),
+        Provider<CardsRepository>.value(value: cardsRepository),
         ChangeNotifierProvider<LanguageProvider>.value(value: languageProvider),
         ChangeNotifierProvider<UserProvider>.value(value: userProvider),
         ChangeNotifierProvider<AppearanceProvider>.value(
           value: appearanceProvider,
         ),
       ],
-      child: MyApp(initialRoute: startRoute, isLoggedIn: isLoggedIn),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(
+            create: (_) => AuthBloc(
+              authRepository: authRepository,
+              currentUserRepository: currentUserRepository,
+            )..add(const AuthStarted()),
+          ),
+          BlocProvider(
+            create: (_) => HomeBloc(
+              currentUserRepository: currentUserRepository,
+              walletRepository: walletRepository,
+              transactionsRepository: transactionsRepository,
+              cardsRepository: cardsRepository,
+            )..add(const HomeStarted()),
+          ),
+          BlocProvider(
+            create: (_) => AnalyticsBloc(
+              currentUserRepository: currentUserRepository,
+              transactionsRepository: transactionsRepository,
+            )..add(const AnalyticsStarted()),
+          ),
+          BlocProvider(
+            create: (_) => CardsBloc(
+              currentUserRepository: currentUserRepository,
+              cardsRepository: cardsRepository,
+            )..add(const CardsStarted()),
+          ),
+          BlocProvider(
+            create: (_) => NotificationsBloc(
+              currentUserRepository: currentUserRepository,
+              notificationRepository: notificationRepository,
+            )..add(const NotificationsStarted()),
+          ),
+          BlocProvider(
+            create: (_) => PaymentsBloc(
+              currentUserRepository: currentUserRepository,
+              walletRepository: walletRepository,
+              transactionsRepository: transactionsRepository,
+              transferRepository: transferRepository,
+            )..add(const PaymentsStarted()),
+          ),
+          BlocProvider(
+            create: (_) => ProfileBloc(
+              authRepository: authRepository,
+              currentUserRepository: currentUserRepository,
+              walletRepository: walletRepository,
+            )..add(const ProfileStarted()),
+          ),
+        ],
+        child: MyApp(initialRoute: startRoute, isLoggedIn: isLoggedIn),
+      ),
     ),
   );
 }

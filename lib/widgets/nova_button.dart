@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/fonts.dart';
+import '../core/theme/fonts.dart';
 
 class NovaButton extends StatelessWidget {
   final String text;
