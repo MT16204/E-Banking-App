@@ -32,6 +32,8 @@ void main() {
       ),
     );
 
+    await tester.pumpAndSettle();
+
     // Kiểm tra và thực hiện test các thành phần giao diện
     if (find.byIcon(Icons.add).evaluate().isNotEmpty) {
       await tester.tap(find.byIcon(Icons.add));
