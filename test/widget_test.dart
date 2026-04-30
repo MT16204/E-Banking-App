@@ -16,8 +16,9 @@
 //   });
 // }
 
-
+import 'package:banking_app/features/auth/screens/login_screen.dart';
 import 'package:banking_app/providers/appearance_provider.dart';
+import 'package:banking_app/providers/language_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -26,18 +27,19 @@ import 'package:banking_app/main.dart';
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(
-      ChangeNotifierProvider(
-        create: (_) => AppearanceProvider(),
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AppearanceProvider()),
+          ChangeNotifierProvider(create: (_) => LanguageProvider()),
+          // Nếu sau này có thêm AuthProvider hay các cái khác, hãy thêm vào đây
+        ],
         child: const MyApp(initialRoute: '/', isLoggedIn: false),
       ),
     );
 
+    // Chờ SplashScreen và các transition hoàn tất
     await tester.pumpAndSettle();
 
-    // Kiểm tra và thực hiện test các thành phần giao diện
-    if (find.byIcon(Icons.add).evaluate().isNotEmpty) {
-      await tester.tap(find.byIcon(Icons.add));
-      await tester.pump();
-    }
+    expect(find.byType(LoginScreen), findsOneWidget); 
   });
 }
