@@ -40,12 +40,24 @@ class AuthService {
     final result = await functions.createExecution(
       functionId: functionId,
       body: jsonEncode({'userId': userId, 'newPassword': newPassword}),
+      xasync: false,
       method: ExecutionMethod.pOST,
+      headers: {'content-type': 'application/json'},
     );
 
-    if (result.responseStatusCode != 200) {
-      final Map<String, dynamic> body = jsonDecode(result.responseBody);
-      throw Exception(body['error'] ?? 'Không thể đặt lại mật khẩu.');
+    final statusCode = result.responseStatusCode;
+    final isSuccess = statusCode >= 200 && statusCode < 300;
+
+    if (!isSuccess) {
+      Map<String, dynamic>? body;
+      try {
+        body = jsonDecode(result.responseBody) as Map<String, dynamic>;
+      } catch (_) {}
+      throw Exception(
+        body?['error'] ??
+            body?['message'] ??
+            'Không thể đặt lại mật khẩu. (HTTP $statusCode)',
+      );
     }
   }
 }

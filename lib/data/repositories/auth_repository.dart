@@ -146,14 +146,18 @@ class AuthRepository {
     }
   }
 
-  /// Bước 2: Xác minh OTP → tạo session.
-  Future<void> verifyResetOTP(String userId, String otpCode) async {
+  /// Bước 2: Xác minh OTP → tạo session, rồi trả về userId thật của account.
+  Future<String> verifyResetOTP(String userId, String otpCode) async {
     try {
       try {
         await authService.logout();
       } catch (_) {}
       await authService.verifyEmailOTP(userId, otpCode);
-      debugPrint('[RESET] ✅ verifyEmailOTP thành công — session sẵn sàng');
+      final verifiedUser = await authService.account.get();
+      debugPrint(
+        '[RESET] ✅ verifyEmailOTP thành công — actual userId: ${verifiedUser.$id}',
+      );
+      return verifiedUser.$id;
     } on AppwriteException catch (e) {
       debugPrint('verifyResetOTP error (${e.code}): ${e.message}');
       if (e.code == 401 || e.type == 'user_invalid_token') {
@@ -167,16 +171,18 @@ class AuthRepository {
   }
 
   /// Bước 3: Đặt lại mật khẩu qua Appwrite Function.
-  Future<void> resetPasswordWithOTP(String newPassword, String email) async {
+  Future<void> resetPasswordWithOTP({
+    required String newPassword,
+    required String userId,
+  }) async {
     try {
-      debugPrint('[RESET] ▶️ Lấy userId từ session hiện tại...');
-      final user = await authService.account.get();
-      debugPrint('[RESET] ✅ userId: ${user.$id}');
+      debugPrint('[RESET] ▶️ Dùng userId đã xác minh từ luồng OTP...');
+      debugPrint('[RESET] ✅ userId: $userId');
 
       debugPrint('[RESET] ▶️ Gọi Appwrite Function reset password...');
       await authService.resetPasswordViaFunction(
         functionId: _resetPasswordFunctionId,
-        userId: user.$id,
+        userId: userId,
         newPassword: newPassword,
       );
       debugPrint('[RESET] ✅ Reset password thành công');
@@ -188,6 +194,13 @@ class AuthRepository {
     } on AppwriteException catch (e) {
       debugPrint('[RESET] ❌ error (${e.code}): ${e.message}');
       throw Exception(e.message ?? 'Không thể đặt lại mật khẩu.');
+    } catch (e) {
+      debugPrint('[RESET] ❌ unexpected error: $e');
+      throw Exception(
+        e.toString().replaceAll('Exception: ', '').trim().isNotEmpty
+            ? e.toString().replaceAll('Exception: ', '').trim()
+            : 'Không thể đặt lại mật khẩu.',
+      );
     }
   }
 

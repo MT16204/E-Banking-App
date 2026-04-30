@@ -11,18 +11,12 @@ import 'package:banking_app/data/models/models.dart';
 import 'package:banking_app/data/repositories/wallet_repository.dart';
 import 'package:banking_app/providers/user_provider.dart';
 import 'package:banking_app/widgets/header.dart';
+import 'package:banking_app/widgets/transfer_amount_card.dart';
+import 'package:banking_app/widgets/transfer_bottom_bar.dart';
+import 'package:banking_app/widgets/transfer_fast_toggle.dart';
+import 'package:banking_app/widgets/transfer_note_card.dart';
+import 'package:banking_app/widgets/transfer_source_card.dart';
 import 'transfer_confirm_screen.dart';
-
-class SpendingCategory {
-  final String id;
-  final String label;
-  final IconData icon;
-  const SpendingCategory({
-    required this.id,
-    required this.label,
-    required this.icon,
-  });
-}
 
 class TransferScreen extends StatefulWidget {
   final String? prefillAccountNumber;
@@ -58,57 +52,46 @@ class _TransferScreenState extends State<TransferScreen>
   final Map<String, String> _recipientNames = {};
   bool _loadingRecipientNames = false;
 
-  final List<SpendingCategory> _categories = const [
-    SpendingCategory(
+  final List<TransferSpendingCategory> _categories = const [
+    TransferSpendingCategory(
       id: 'food',
       label: 'Nhà hàng\nquán ăn',
       icon: LucideIcons.utensils,
     ),
-    SpendingCategory(id: 'misc', label: 'Tiêu vặt', icon: LucideIcons.coffee),
-    SpendingCategory(
+    TransferSpendingCategory(
+      id: 'misc',
+      label: 'Tiêu vặt',
+      icon: LucideIcons.coffee,
+    ),
+    TransferSpendingCategory(
       id: 'fashion',
       label: 'Quần áo\nvà phụ kiện',
       icon: LucideIcons.shoppingBag,
     ),
-    SpendingCategory(
+    TransferSpendingCategory(
       id: 'transport',
       label: 'Di chuyển',
       icon: LucideIcons.car,
     ),
-    SpendingCategory(id: 'health', label: 'Sức khỏe', icon: LucideIcons.heart),
-    SpendingCategory(
+    TransferSpendingCategory(
+      id: 'health',
+      label: 'Sức khỏe',
+      icon: LucideIcons.heart,
+    ),
+    TransferSpendingCategory(
       id: 'education',
       label: 'Giáo dục',
       icon: LucideIcons.bookOpen,
     ),
-    SpendingCategory(id: 'bill', label: 'Hóa đơn', icon: LucideIcons.fileText),
-    SpendingCategory(id: 'other', label: 'Khác', icon: LucideIcons.grid),
+    TransferSpendingCategory(
+      id: 'bill',
+      label: 'Hóa đơn',
+      icon: LucideIcons.fileText,
+    ),
+    TransferSpendingCategory(id: 'other', label: 'Khác', icon: LucideIcons.grid),
   ];
 
   DateTime? _lastTyped;
-
-  String _categoryLabel(BuildContext context, String id) {
-    switch (id) {
-      case 'food':
-        return context.tr('Nhà hàng\nquán ăn', 'Food\n& dining');
-      case 'misc':
-        return context.tr('Tiêu vặt', 'Misc');
-      case 'fashion':
-        return context.tr('Quần áo\nvà phụ kiện', 'Fashion\n& accessories');
-      case 'transport':
-        return context.tr('Di chuyển', 'Transport');
-      case 'health':
-        return context.tr('Sức khỏe', 'Health');
-      case 'education':
-        return context.tr('Giáo dục', 'Education');
-      case 'bill':
-        return context.tr('Hóa đơn', 'Bills');
-      case 'other':
-        return context.tr('Khác', 'Other');
-      default:
-        return id;
-    }
-  }
 
   @override
   void initState() {
@@ -437,68 +420,21 @@ class _TransferScreenState extends State<TransferScreen>
           ),
         ),
       ),
-      bottomNavigationBar: _buildBottomBar(),
+      bottomNavigationBar: TransferBottomBar(onContinue: _onContinue),
     );
   }
 
   Widget _buildSourceCard() => Consumer<UserProvider>(
     builder: (_, prov, __) {
       final theme = NovaTheme.watch(context);
-      final fmt = NumberFormat('#,###', 'vi_VN');
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.primary,
-          borderRadius: BorderRadius.circular(16),
+      return TransferSourceCard(
+        primaryColor: theme.primary,
+        accountLabel: context.tr(
+          'TK nguồn: ${prov.wallet?.accountNumber ?? '****'}',
+          'Source account: ${prov.wallet?.accountNumber ?? '****'}',
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                LucideIcons.user,
-                color: Colors.white,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr(
-                      'TK nguồn: ${prov.wallet?.accountNumber ?? '****'}',
-                      'Source account: ${prov.wallet?.accountNumber ?? '****'}',
-                    ),
-                    style: NovaFonts.body.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.tr(
-                      'Số dư: ${fmt.format(prov.wallet?.balance ?? 0)} VND',
-                      'Balance: ${fmt.format(prov.wallet?.balance ?? 0)} VND',
-                    ),
-                    style: NovaFonts.body.copyWith(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(LucideIcons.chevronDown, color: Colors.white70),
-          ],
-        ),
+        balanceLabel: context.tr('Số dư', 'Balance'),
+        balance: prov.wallet?.balance ?? 0,
       );
     },
   );
@@ -794,280 +730,59 @@ class _TransferScreenState extends State<TransferScreen>
     );
   }
 
-  Widget _buildAmountCard() => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: NovaTheme.of(context).surface,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              context.tr('Số tiền chuyển (VND)', 'Transfer amount (VND)'),
-              style: NovaFonts.body.copyWith(
-                color: NovaTheme.of(context).textSecondary,
-                fontSize: 13,
-              ),
-            ),
-            Row(
-              children: [
-                const Icon(
-                  Icons.info_outline,
-                  size: 14,
-                  color: Color(0xFF1A5C4A),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  context.tr('Hạn mức', 'Limit'),
-                  style: NovaFonts.body.copyWith(
-                    color: NovaTheme.of(context).primary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        TextField(
-          controller: _amountController,
-          keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-            _ThousandsSeparatorFormatter(),
-          ],
-          style: NovaFonts.numbers.copyWith(
-            fontSize: 32,
-            fontWeight: FontWeight.w300,
-          ),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: '0',
-            hintStyle: NovaFonts.numbers.copyWith(
-              fontSize: 32,
-              fontWeight: FontWeight.w300,
-              color: NovaTheme.of(context).primaryMid,
-            ),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _quickAmountBtn('50K', 50000),
-              const SizedBox(width: 8),
-              _quickAmountBtn('100K', 100000),
-              const SizedBox(width: 8),
-              _quickAmountBtn('200K', 200000),
-              const SizedBox(width: 8),
-              _quickAmountBtn('500K', 500000),
-              const SizedBox(width: 8),
-              _quickAmountBtn('1TR', 1000000),
-            ],
-          ),
-        ),
-      ],
-    ),
+  Widget _buildAmountCard() => TransferAmountCard(
+    controller: _amountController,
+    inputFormatters: [
+      FilteringTextInputFormatter.digitsOnly,
+      _ThousandsSeparatorFormatter(),
+    ],
+    onQuickAmountTap: (amount) {
+      _amountController.text = NumberFormat('#,###', 'vi_VN').format(amount);
+    },
   );
 
-  Widget _quickAmountBtn(String label, int amount) => GestureDetector(
-    onTap: () =>
-        _amountController.text = NumberFormat('#,###', 'vi_VN').format(amount),
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      decoration: BoxDecoration(
-        color: NovaTheme.of(context).primaryLight,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: NovaTheme.of(context).primaryMid),
-      ),
-      child: Text(
-        label,
-        style: NovaFonts.body.copyWith(
-          color: NovaTheme.of(context).primary,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
+  Widget _buildNoteCard() => TransferNoteCard(
+    noteController: _noteController,
+    categories: _categories
+        .map(
+          (category) => TransferSpendingCategory(
+            id: category.id,
+            label: _localizedCategoryLabel(context, category.id),
+            icon: category.icon,
+          ),
+        )
+        .toList(),
+    selectedCategoryId: _selectedCategoryId,
+    onCategoryChanged: (value) => setState(() => _selectedCategoryId = value),
   );
 
-  Widget _buildNoteCard() => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: NovaTheme.of(context).surface,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr('Nội dung', 'Description'),
-          style: NovaFonts.body.copyWith(
-            color: NovaTheme.of(context).textSecondary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 4),
-        TextField(
-          controller: _noteController,
-          maxLength: 150,
-          style: NovaFonts.body.copyWith(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-          ),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            counterStyle: NovaFonts.body.copyWith(
-              fontSize: 11,
-              color: NovaTheme.of(context).textSecondary,
-            ),
-            hintText: context.tr(
-              'Nhập nội dung chuyển tiền',
-              'Enter transfer note',
-            ),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        const Divider(color: Color(0xFFEEEEEE)),
-        const SizedBox(height: 12),
-        Text(
-          context.tr('Danh mục chi tiêu', 'Spending category'),
-          style: NovaFonts.body.copyWith(
-            color: NovaTheme.of(context).textSecondary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 4,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 8,
-            childAspectRatio: 0.78,
-          ),
-          itemCount: _categories.length,
-          itemBuilder: (_, i) {
-            final cat = _categories[i];
-            final isSel = _selectedCategoryId == cat.id;
-            return GestureDetector(
-              onTap: () =>
-                  setState(() => _selectedCategoryId = isSel ? null : cat.id),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    width: 50,
-                    height: 50,
-                    decoration: BoxDecoration(
-                      color: isSel
-                          ? NovaTheme.of(context).primary
-                          : NovaTheme.of(context).primaryLight,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSel
-                            ? NovaTheme.of(context).primary
-                            : NovaTheme.of(context).primaryMid,
-                        width: isSel ? 2 : 1,
-                      ),
-                    ),
-                    child: Icon(
-                      cat.icon,
-                      size: 20,
-                      color: isSel
-                          ? Colors.white
-                          : NovaTheme.of(context).primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _categoryLabel(context, cat.id),
-                    textAlign: TextAlign.center,
-                    style: NovaFonts.body.copyWith(
-                      fontSize: 10,
-                      color: isSel
-                          ? NovaTheme.of(context).primary
-                          : NovaTheme.of(context).textSecondary,
-                      fontWeight: isSel ? FontWeight.w700 : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ],
-    ),
+  Widget _buildFastToggle() => TransferFastToggle(
+    value: _isFastTransfer,
+    onChanged: (value) => setState(() => _isFastTransfer = value),
   );
 
-  Widget _buildFastToggle() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    decoration: BoxDecoration(
-      color: NovaTheme.of(context).surface,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(
-            context.tr('Chuyển tiền nhanh', 'Fast transfer'),
-            style: NovaFonts.body.copyWith(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: NovaTheme.of(context).textPrimary,
-            ),
-          ),
-        ),
-        Switch(
-          value: _isFastTransfer,
-          onChanged: (v) => setState(() => _isFastTransfer = v),
-          activeThumbColor: NovaTheme.of(context).primary,
-          activeTrackColor: NovaTheme.of(
-            context,
-          ).primary.withValues(alpha: 0.4),
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildBottomBar() => Container(
-    padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-    decoration: BoxDecoration(
-      color: NovaTheme.of(context).surface,
-      boxShadow: const [
-        BoxShadow(
-          color: Color(0x1A000000),
-          blurRadius: 20,
-          offset: Offset(0, -4),
-        ),
-      ],
-    ),
-    child: SizedBox(
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _onContinue,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: NovaTheme.of(context).primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          context.tr('Tiếp tục', 'Continue'),
-          style: NovaFonts.heading.copyWith(color: Colors.white, fontSize: 16),
-        ),
-      ),
-    ),
-  );
+  String _localizedCategoryLabel(BuildContext context, String id) {
+    switch (id) {
+      case 'food':
+        return context.tr('Nhà hàng\nquán ăn', 'Food\n& dining');
+      case 'misc':
+        return context.tr('Tiêu vặt', 'Misc');
+      case 'fashion':
+        return context.tr('Quần áo\nvà phụ kiện', 'Fashion\n& accessories');
+      case 'transport':
+        return context.tr('Di chuyển', 'Transport');
+      case 'health':
+        return context.tr('Sức khỏe', 'Health');
+      case 'education':
+        return context.tr('Giáo dục', 'Education');
+      case 'bill':
+        return context.tr('Hóa đơn', 'Bills');
+      case 'other':
+        return context.tr('Khác', 'Other');
+      default:
+        return id;
+    }
+  }
 }
 
 class _ThousandsSeparatorFormatter extends TextInputFormatter {

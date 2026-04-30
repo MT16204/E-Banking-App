@@ -10,7 +10,7 @@ import 'package:banking_app/widgets/auth_ui.dart';
 
 /// Trang Đặt Lại Mật Khẩu — sau khi OTP đã xác minh thành công.
 ///
-/// Nhận arguments: {'email': String}
+/// Nhận arguments: {'userId': String, 'email': String}
 /// Điều hướng ra:  '/login' (xoá toàn bộ stack) sau khi thành công
 
 class ResetPasswordScreen extends StatefulWidget {
@@ -72,6 +72,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
     final password = _passController.text;
     final confirm = _confirmController.text;
+    final userId = (_args['userId'] ?? '').toString().trim();
 
     if (!_hasMinLength || !_hasUppercase || !_hasSpecialChar) {
       setState(() => _errorMessage = errWeak);
@@ -81,6 +82,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       setState(() => _errorMessage = errMismatch);
       return;
     }
+    if (userId.isEmpty) {
+      setState(
+        () => _errorMessage = context.tr(
+          'Thiếu thông tin xác thực đặt lại mật khẩu. Vui lòng thực hiện lại từ bước xác minh OTP.',
+          'Missing password reset verification data. Please restart from OTP verification.',
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -88,7 +98,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     });
 
     try {
-      await repo.resetPasswordWithOTP(password, _args['email'] as String);
+      await repo.resetPasswordWithOTP(
+        newPassword: password,
+        userId: userId,
+      );
       if (!mounted) return;
       setState(() {
         _isLoading = false;

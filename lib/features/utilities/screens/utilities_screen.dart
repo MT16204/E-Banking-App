@@ -5,36 +5,8 @@ import 'package:banking_app/core/l10n/app_lang.dart';
 import 'package:banking_app/core/theme/colors.dart';
 import 'package:banking_app/core/theme/fonts.dart';
 import 'package:banking_app/widgets/header.dart';
-
-// ─── Banner model ──────────────────────────────────────────────────────────────
-class _BannerItem {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color bgColor;
-  final Color accentColor;
-  const _BannerItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.bgColor,
-    required this.accentColor,
-  });
-}
-
-// ─── Data model ────────────────────────────────────────────────────────────────
-class _UtilityItem {
-  final String label;
-  final IconData icon;
-  final String? badge;
-  const _UtilityItem({required this.label, required this.icon, this.badge});
-}
-
-class _UtilitySection {
-  final String title;
-  final List<_UtilityItem> items;
-  const _UtilitySection({required this.title, required this.items});
-}
+import 'package:banking_app/widgets/utilities_banner_carousel.dart';
+import 'package:banking_app/widgets/utilities_section_card.dart';
 
 // ─── Screen ────────────────────────────────────────────────────────────────────
 class UtilitiesScreen extends StatefulWidget {
@@ -60,29 +32,29 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
-  final List<_BannerItem> _banners = const [
-    _BannerItem(
+  final List<UtilitiesBannerItem> _banners = const [
+    UtilitiesBannerItem(
       title: 'Flash Sale hôm nay',
       subtitle: 'Giảm đến 50% dịch vụ nạp thẻ',
       icon: LucideIcons.zap,
       bgColor: Color(0xFF1A5C4A),
       accentColor: Color(0xFF4CAF82),
     ),
-    _BannerItem(
+    UtilitiesBannerItem(
       title: 'Đặt phòng khách sạn',
       subtitle: 'Ưu đãi cuối tuần — giảm 25%',
       icon: LucideIcons.building2,
       bgColor: Color(0xFF1A3A5C),
       accentColor: Color(0xFF4C82AF),
     ),
-    _BannerItem(
+    UtilitiesBannerItem(
       title: 'Thanh toán hóa đơn',
       subtitle: 'Hoàn tiền 2% mọi hóa đơn điện nước',
       icon: LucideIcons.receipt,
       bgColor: Color(0xFF5C3A1A),
       accentColor: Color(0xFFAF824C),
     ),
-    _BannerItem(
+    UtilitiesBannerItem(
       title: 'Vé xem phim',
       subtitle: 'Chỉ 75.000đ — áp dụng mọi rạp',
       icon: LucideIcons.film,
@@ -91,82 +63,108 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
     ),
   ];
 
-  final List<_UtilitySection> _sections = const [
-    _UtilitySection(
+  final List<UtilitiesGridSection> _sections = const [
+    UtilitiesGridSection(
       title: 'Mua sắm & Ưu đãi',
       items: [
-        _UtilityItem(
+        UtilitiesGridItem(
           label: 'Mua sắm\ntrực tuyến',
           icon: LucideIcons.shoppingCart,
           badge: 'Hot',
         ),
-        _UtilityItem(
+        UtilitiesGridItem(
           label: 'E-Voucher\nưu đãi',
           icon: LucideIcons.tag,
           badge: 'Mới',
         ),
-        _UtilityItem(label: 'Hoàn tiền', icon: LucideIcons.refreshCw),
-        _UtilityItem(label: 'Flash Sale', icon: LucideIcons.zap, badge: '-50%'),
+        UtilitiesGridItem(label: 'Hoàn tiền', icon: LucideIcons.refreshCw),
+        UtilitiesGridItem(
+          label: 'Flash Sale',
+          icon: LucideIcons.zap,
+          badge: '-50%',
+        ),
       ],
     ),
-    _UtilitySection(
+    UtilitiesGridSection(
       title: 'Viễn thông & Nạp thẻ',
       items: [
-        _UtilityItem(
+        UtilitiesGridItem(
           label: 'Nạp điện\nthoại',
           icon: LucideIcons.smartphone,
           badge: '-30%',
         ),
-        _UtilityItem(label: 'Thẻ Game', icon: LucideIcons.gamepad2),
-        _UtilityItem(label: 'Data 4G/5G', icon: LucideIcons.wifi),
-        _UtilityItem(label: 'Thẻ điện\nthoại', icon: LucideIcons.creditCard),
+        UtilitiesGridItem(label: 'Thẻ Game', icon: LucideIcons.gamepad2),
+        UtilitiesGridItem(label: 'Data 4G/5G', icon: LucideIcons.wifi),
+        UtilitiesGridItem(
+          label: 'Thẻ điện\nthoại',
+          icon: LucideIcons.creditCard,
+        ),
       ],
     ),
-    _UtilitySection(
+    UtilitiesGridSection(
       title: 'Hóa đơn & Thanh toán',
       items: [
-        _UtilityItem(label: 'Điện\n(EVN)', icon: LucideIcons.zap),
-        _UtilityItem(label: 'Nước', icon: LucideIcons.droplets),
-        _UtilityItem(label: 'Internet\n& TV', icon: LucideIcons.tv),
-        _UtilityItem(label: 'Bảo hiểm', icon: LucideIcons.shield),
-        _UtilityItem(label: 'Học phí', icon: LucideIcons.graduationCap),
-        _UtilityItem(label: 'Thuế &\nphí khác', icon: LucideIcons.landmark),
+        UtilitiesGridItem(label: 'Điện\n(EVN)', icon: LucideIcons.zap),
+        UtilitiesGridItem(label: 'Nước', icon: LucideIcons.droplets),
+        UtilitiesGridItem(label: 'Internet\n& TV', icon: LucideIcons.tv),
+        UtilitiesGridItem(label: 'Bảo hiểm', icon: LucideIcons.shield),
+        UtilitiesGridItem(
+          label: 'Học phí',
+          icon: LucideIcons.graduationCap,
+        ),
+        UtilitiesGridItem(
+          label: 'Thuế &\nphí khác',
+          icon: LucideIcons.landmark,
+        ),
       ],
     ),
-    _UtilitySection(
+    UtilitiesGridSection(
       title: 'Giải trí & Xổ số',
       items: [
-        _UtilityItem(
+        UtilitiesGridItem(
           label: 'Vé xem\nphim',
           icon: LucideIcons.film,
           badge: '75k',
         ),
-        _UtilityItem(label: 'Vé sự kiện', icon: LucideIcons.ticket),
-        _UtilityItem(label: 'Xổ số', icon: LucideIcons.dices),
-        _UtilityItem(label: 'Âm nhạc', icon: LucideIcons.music),
+        UtilitiesGridItem(label: 'Vé sự kiện', icon: LucideIcons.ticket),
+        UtilitiesGridItem(label: 'Xổ số', icon: LucideIcons.dices),
+        UtilitiesGridItem(label: 'Âm nhạc', icon: LucideIcons.music),
       ],
     ),
-    _UtilitySection(
+    UtilitiesGridSection(
       title: 'Du lịch & Di chuyển',
       items: [
-        _UtilityItem(
+        UtilitiesGridItem(
           label: 'Đặt phòng\nkhách sạn',
           icon: LucideIcons.building2,
           badge: '-25%',
         ),
-        _UtilityItem(label: 'Vé máy\nbay', icon: LucideIcons.planeTakeoff),
-        _UtilityItem(label: 'Vé tàu', icon: LucideIcons.train),
-        _UtilityItem(label: 'Vé xe', icon: LucideIcons.bus),
-        _UtilityItem(label: 'Gọi xe', icon: LucideIcons.car, badge: '-50%'),
-        _UtilityItem(label: 'Thuê xe\ndu lịch', icon: LucideIcons.mapPin),
+        UtilitiesGridItem(
+          label: 'Vé máy\nbay',
+          icon: LucideIcons.planeTakeoff,
+        ),
+        UtilitiesGridItem(label: 'Vé tàu', icon: LucideIcons.train),
+        UtilitiesGridItem(label: 'Vé xe', icon: LucideIcons.bus),
+        UtilitiesGridItem(
+          label: 'Gọi xe',
+          icon: LucideIcons.car,
+          badge: '-50%',
+        ),
+        UtilitiesGridItem(label: 'Thuê xe\ndu lịch', icon: LucideIcons.mapPin),
       ],
     ),
-    _UtilitySection(
+    UtilitiesGridSection(
       title: 'Sức khỏe & Y tế',
       items: [
-        _UtilityItem(label: 'Đặt lịch\nkhám', icon: LucideIcons.stethoscope),
-        _UtilityItem(label: 'Nhà thuốc', icon: LucideIcons.pill),
-        _UtilityItem(label: 'Bảo hiểm\nsức khỏe', icon: LucideIcons.heartPulse),
+        UtilitiesGridItem(
+          label: 'Đặt lịch\nkhám',
+          icon: LucideIcons.stethoscope,
+        ),
+        UtilitiesGridItem(label: 'Nhà thuốc', icon: LucideIcons.pill),
+        UtilitiesGridItem(
+          label: 'Bảo hiểm\nsức khỏe',
+          icon: LucideIcons.heartPulse,
+        ),
       ],
     ),
   ];
@@ -216,12 +214,12 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
     });
   }
 
-  List<_UtilitySection> get _filteredSections {
+  List<UtilitiesGridSection> get _filteredSections {
     if (_query.isEmpty) return _sections;
     final q = _query.toLowerCase();
     return _sections
         .map(
-          (s) => _UtilitySection(
+          (s) => UtilitiesGridSection(
             title: s.title,
             items: s.items
                 .where((i) => i.label.toLowerCase().contains(q))
@@ -342,7 +340,7 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
     }
   }
 
-  void _onItemTap(_UtilityItem item) {
+  void _onItemTap(UtilitiesGridItem item) {
     showModalBottomSheet(
       context: context,
       backgroundColor: NovaTheme.of(context).surface,
@@ -564,7 +562,30 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
                         children: [
                           // ── Banner carousel ──
                           if (_query.isEmpty) ...[
-                            _buildBannerCarousel(context),
+                            UtilitiesBannerCarousel(
+                              controller: _bannerController,
+                              currentIndex: _bannerIndex,
+                              banners: _banners
+                                  .map(
+                                    (banner) => UtilitiesBannerItem(
+                                      title: _bannerTitle(
+                                        context,
+                                        banner.title,
+                                      ),
+                                      subtitle: _bannerSubtitle(
+                                        context,
+                                        banner.subtitle,
+                                      ),
+                                      icon: banner.icon,
+                                      bgColor: banner.bgColor,
+                                      accentColor: banner.accentColor,
+                                    ),
+                                  )
+                                  .toList(),
+                              onPageChanged: (i) =>
+                                  setState(() => _bannerIndex = i),
+                              offerLabel: context.tr('Ưu đãi', 'Offer'),
+                            ),
                             const SizedBox(height: 16),
                           ],
                           // ── Sections ──
@@ -575,7 +596,27 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
                               ),
                               child: _AnimatedSection(
                                 delay: Duration(milliseconds: 60 * i),
-                                child: _buildSection(context, filtered[i]),
+                                child: UtilitiesSectionCard(
+                                  section: UtilitiesGridSection(
+                                    title: _sectionTitle(
+                                      context,
+                                      filtered[i].title,
+                                    ),
+                                    items: filtered[i].items
+                                        .map(
+                                          (item) => UtilitiesGridItem(
+                                            label: _itemLabel(
+                                              context,
+                                              item.label,
+                                            ),
+                                            icon: item.icon,
+                                            badge: item.badge,
+                                          ),
+                                        )
+                                        .toList(),
+                                  ),
+                                  onItemTap: _onItemTap,
+                                ),
                               ),
                             );
                           }),
@@ -589,245 +630,6 @@ class _UtilitiesScreenState extends State<UtilitiesScreen>
     );
   }
 
-  // ── Banner Carousel ──────────────────────────────────────────────────────────
-  Widget _buildBannerCarousel(BuildContext context) {
-    final t = NovaTheme.watch(context);
-    return Column(
-      children: [
-        SizedBox(
-          height: 130,
-          child: PageView.builder(
-            controller: _bannerController,
-            onPageChanged: (i) => setState(() => _bannerIndex = i),
-            itemCount: _banners.length,
-            itemBuilder: (_, i) => _buildBannerCard(context, _banners[i]),
-          ),
-        ),
-        const SizedBox(height: 10),
-        // Dot indicators
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(_banners.length, (i) {
-            final isActive = i == _bannerIndex;
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-              margin: const EdgeInsets.symmetric(horizontal: 3),
-              width: isActive ? 20 : 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: isActive ? t.primary : t.primaryMid,
-                borderRadius: BorderRadius.circular(3),
-              ),
-            );
-          }),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBannerCard(BuildContext context, _BannerItem banner) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Container(
-        decoration: BoxDecoration(
-          color: banner.bgColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -20,
-              top: -20,
-              child: Container(
-                width: 130,
-                height: 130,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: banner.accentColor.withOpacity(0.18),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 20,
-              bottom: -30,
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: banner.accentColor.withOpacity(0.12),
-                ),
-              ),
-            ),
-            // Content
-            Padding(
-              padding: const EdgeInsets.fromLTRB(22, 22, 100, 22),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: banner.accentColor.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      context.tr('Ưu đãi', 'Offer'),
-                      style: NovaFonts.body.copyWith(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _bannerTitle(context, banner.title),
-                    style: NovaFonts.heading.copyWith(
-                      color: Colors.white,
-                      fontSize: 16,
-                      letterSpacing: 0.2,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _bannerSubtitle(context, banner.subtitle),
-                    style: NovaFonts.body.copyWith(
-                      color: Colors.white.withOpacity(0.75),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Positioned(
-              right: 24,
-              top: 0,
-              bottom: 0,
-              child: Center(
-                child: Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    color: banner.accentColor.withOpacity(0.22),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    banner.icon,
-                    size: 26,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSection(BuildContext context, _UtilitySection section) {
-    final t = NovaTheme.watch(context);
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: t.surface,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [t.cardShadow],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _sectionTitle(context, section.title),
-            style: NovaFonts.heading.copyWith(
-              fontSize: 14,
-              color: t.textPrimary,
-              letterSpacing: 0.3,
-            ),
-          ),
-          const SizedBox(height: 16),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisSpacing: 16,
-              crossAxisSpacing: 8,
-              childAspectRatio: 0.75,
-            ),
-            itemCount: section.items.length,
-            itemBuilder: (_, j) => _buildItem(context, section.items[j]),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItem(BuildContext context, _UtilityItem item) {
-    final t = NovaTheme.watch(context);
-    return GestureDetector(
-      onTap: () => _onItemTap(item),
-      behavior: HitTestBehavior.opaque, // Đảm bảo bắt sự kiện chạm nhạy hơn
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: t.primaryLight,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(item.icon, size: 24, color: t.primary),
-              ),
-              if (item.badge != null)
-                Positioned(
-                  top: -4,
-                  right: -6,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.redAccent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      item.badge!,
-                      style: NovaFonts.body.copyWith(
-                        color: Colors.white,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 7),
-          Text(
-            _itemLabel(context, item.label),
-            textAlign: TextAlign.center,
-            style: NovaFonts.body.copyWith(
-              fontSize: 11,
-              color: t.textPrimary,
-              height: 1.35,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 // ─── Animated section ────────────────────
@@ -875,55 +677,4 @@ class _AnimatedSectionState extends State<_AnimatedSection>
     opacity: _fade,
     child: SlideTransition(position: _slide, child: widget.child),
   );
-}
-
-// ─── Animated item ─────────────────────────────────────
-class _AnimatedItem extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-  const _AnimatedItem({required this.child, required this.onTap});
-
-  @override
-  State<_AnimatedItem> createState() => _AnimatedItemState();
-}
-
-class _AnimatedItemState extends State<_AnimatedItem>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-  late Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 100),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-      value: 1.0,
-    );
-    _scale = Tween<double>(
-      begin: 1.0,
-      end: 0.88,
-    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ctrl.forward(),
-      onTapUp: (_) async {
-        await _ctrl.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _ctrl.reverse(),
-      child: ScaleTransition(scale: _scale, child: widget.child),
-    );
-  }
 }

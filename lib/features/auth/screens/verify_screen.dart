@@ -11,7 +11,7 @@ import 'package:banking_app/widgets/auth_ui.dart';
 /// Layout giống OTPScreen (otp_screen.dart).
 ///
 /// Nhận arguments: {'userId': String, 'email': String}
-/// Điều hướng ra:  '/reset-password' với {'email': String}
+/// Điều hướng ra:  '/reset-password' với {'userId': String, 'email': String}
 
 class VerifyScreen extends StatefulWidget {
   const VerifyScreen({super.key});
@@ -66,13 +66,16 @@ class _VerifyScreenState extends State<VerifyScreen> {
     });
 
     try {
-      await repo.verifyResetOTP(_args['userId'] as String, otp);
+      final verifiedUserId = await repo.verifyResetOTP(
+        _args['userId'] as String,
+        otp,
+      );
 
       if (!mounted) return;
       Navigator.pushNamed(
         context,
         '/reset-password',
-        arguments: {'email': _args['email']},
+        arguments: {'userId': verifiedUserId, 'email': _args['email']},
       );
     } catch (e) {
       if (!mounted) return;

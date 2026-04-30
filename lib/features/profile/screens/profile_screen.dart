@@ -6,9 +6,11 @@ import 'package:banking_app/core/theme/fonts.dart';
 import 'package:banking_app/data/repositories/auth_repository.dart';
 import 'package:banking_app/providers/language_provider.dart';
 import 'package:banking_app/providers/user_provider.dart';
-import 'package:banking_app/widgets/app_appearance_widgets.dart';
 import 'package:banking_app/widgets/appearance_sheets.dart';
 import 'package:banking_app/widgets/header.dart';
+import 'package:banking_app/widgets/profile_avatar_section.dart';
+import 'package:banking_app/widgets/profile_settings_section.dart';
+import 'package:banking_app/widgets/profile_wallet_badge.dart';
 
 class ProfileScreen extends StatelessWidget {
   final VoidCallback? onBackToHome;
@@ -45,7 +47,7 @@ class ProfileScreen extends StatelessWidget {
                             color: const Color(0xFFFFF0F0),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: Colors.red.withOpacity(0.2),
+                              color: Colors.red.withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -75,36 +77,44 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 24),
 
                     // ── Avatar + name ────────────────────────────────────────
-                    _buildAvatarSection(context, user),
+                    ProfileAvatarSection(
+                      greeting: isVietnamese ? 'Xin chào 👋' : 'Hello 👋',
+                      displayName: user?.name ??
+                          (isVietnamese ? 'Người dùng' : 'User'),
+                      displayEmail: user?.email ?? '',
+                      onTap: () => showAvatarSheet(context),
+                    ),
 
                     const SizedBox(height: 20),
 
                     // ── Wallet badge ─────────────────────────────────────────
-                    _buildWalletBadge(
-                      context,
-                      wallet?.accountNumber,
-                      wallet?.balance,
+                    ProfileWalletBadge(
+                      title: isVietnamese
+                          ? 'Tài khoản chính'
+                          : 'Main account',
+                      accountNumber: wallet?.accountNumber ?? '****',
+                      balanceLabel: isVietnamese ? 'Số dư' : 'Balance',
+                      balanceValue: '${_formatBalance(wallet?.balance)} VND',
                     ),
 
                     const SizedBox(height: 24),
 
-                    _buildSection(
-                      context: context,
+                    ProfileSettingsSection(
                       title: isVietnamese
                           ? 'Cài đặt cá nhân'
                           : 'Personal settings',
                       items: [
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.user,
                           isVietnamese ? 'Đổi ảnh đại diện' : 'Change avatar',
                           onTap: () => showAvatarSheet(context),
                         ),
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.sparkles,
                           isVietnamese ? 'Đổi giao diện' : 'Change theme',
                           onTap: () => showThemeSheet(context),
                         ),
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.image,
                           isVietnamese ? 'Đổi ảnh nền' : 'Change background',
                           onTap: () => Navigator.pushNamed(
@@ -112,7 +122,7 @@ class ProfileScreen extends StatelessWidget {
                             '/background-picker',
                           ),
                         ),
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.languages,
                           isVietnamese ? 'Ngôn ngữ' : 'Language',
                           trailing: _langTag(context),
@@ -123,11 +133,10 @@ class ProfileScreen extends StatelessWidget {
 
                     const SizedBox(height: 16),
 
-                    _buildSection(
-                      context: context, // Thêm dòng này
+                    ProfileSettingsSection(
                       title: isVietnamese ? 'An toàn – Bảo mật' : 'Security',
                       items: [
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.shieldCheck,
                           isVietnamese ? 'Sinh trắc học' : 'Biometrics',
                           onTap: () => _showDevelopmentSheet(
@@ -138,7 +147,7 @@ class ProfileScreen extends StatelessWidget {
                             icon: LucideIcons.shieldCheck,
                           ),
                         ),
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.scanFace,
                           isVietnamese ? 'Cài đặt FaceID' : 'Face ID setup',
                           onTap: () => _showDevelopmentSheet(
@@ -149,13 +158,13 @@ class ProfileScreen extends StatelessWidget {
                             icon: LucideIcons.scanFace,
                           ),
                         ),
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.wrench,
                           'Smart OTP',
                           onTap: () =>
                               Navigator.pushNamed(context, '/smart_otp'),
                         ),
-                        _Item(
+                        ProfileSettingsItem(
                           LucideIcons.lock,
                           isVietnamese ? 'Đổi mật khẩu' : 'Change password',
                           onTap: () =>
@@ -172,83 +181,8 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ── Avatar section (dùng AppAvatar từ AppearanceProvider) ─────────────────
-  Widget _buildAvatarSection(BuildContext context, dynamic user) {
-    final theme = NovaTheme.watch(context);
-    final isVietnamese = context.watch<LanguageProvider>().isVietnamese;
-    final displayName = user?.name ?? (isVietnamese ? 'Người dùng' : 'User');
-    final displayEmail = user?.email ?? '';
-
-    return Column(
-      children: [
-        // Avatar — tap để đổi
-        GestureDetector(
-          onTap: () => showAvatarSheet(context),
-          child: Stack(
-            children: [
-              AppAvatar(radius: 44, displayName: displayName),
-              Positioned(
-                bottom: 2,
-                right: 2,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  decoration: BoxDecoration(
-                    color: theme.primary,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  child: const Icon(
-                    LucideIcons.camera,
-                    size: 10,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          isVietnamese ? 'Xin chào 👋' : 'Hello 👋',
-          style: NovaFonts.body.copyWith(
-            color: theme.textSecondary,
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          displayName.toUpperCase(),
-          style: NovaFonts.heading.copyWith(
-            color: theme.textPrimary,
-            fontSize: 19,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0.5,
-          ),
-        ),
-        if (displayEmail.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            displayEmail,
-            style: NovaFonts.body.copyWith(
-              color: theme.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  // ── Wallet badge ─────────────────────────────────────────────────────────────
-  Widget _buildWalletBadge(
-    BuildContext context,
-    String? accountNumber,
-    double? balance,
-  ) {
-    final theme = NovaTheme.watch(context);
-    final isVietnamese = context.watch<LanguageProvider>().isVietnamese;
-    final fmt = balance != null
+  String _formatBalance(double? balance) {
+    return balance != null
         ? balance
               .toStringAsFixed(0)
               .replaceAllMapped(
@@ -256,196 +190,6 @@ class ProfileScreen extends StatelessWidget {
                 (m) => '${m[1]}.',
               )
         : '---';
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: theme.dockBackground,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: theme.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                LucideIcons.wallet,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isVietnamese ? 'Tài khoản chính' : 'Main account',
-                    style: NovaFonts.body.copyWith(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    accountNumber ?? '****',
-                    style: NovaFonts.body.copyWith(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  isVietnamese ? 'Số dư' : 'Balance',
-                  style: NovaFonts.body.copyWith(
-                    color: Colors.white70,
-                    fontSize: 11,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '$fmt VND',
-                  style: NovaFonts.numbers.copyWith(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Settings section ─────────────────────────────────────────────────────────
-  Widget _buildSection({
-    required String title,
-    required List<_Item> items,
-    required BuildContext context,
-  }) {
-    final theme = NovaTheme.watch(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 10),
-            child: Text(
-              title.toUpperCase(),
-              style: NovaFonts.heading.copyWith(
-                fontSize: 10,
-                color: theme.textSecondary,
-                letterSpacing: 1.8,
-              ),
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: theme.surface,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              children: items.asMap().entries.map((entry) {
-                final isFirst = entry.key == 0;
-                final isLast = entry.key == items.length - 1;
-                final item = entry.value;
-
-                return Column(
-                  children: [
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.vertical(
-                          top: isFirst
-                              ? const Radius.circular(20)
-                              : Radius.zero,
-                          bottom: isLast
-                              ? const Radius.circular(20)
-                              : Radius.zero,
-                        ),
-                        onTap:
-                            item.onTap ??
-                            () => debugPrint('Nhấn ${item.label}'),
-                        splashColor: theme.primaryLight,
-                        highlightColor: theme.primaryLight.withOpacity(0.5),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 13,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 38,
-                                height: 38,
-                                decoration: BoxDecoration(
-                                  color: theme.primaryLight,
-                                  borderRadius: BorderRadius.circular(11),
-                                ),
-                                child: Icon(
-                                  item.icon,
-                                  size: 17,
-                                  color: theme.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Text(
-                                  item.label,
-                                  style: NovaFonts.body.copyWith(
-                                    fontSize: 15,
-                                    color: theme.textPrimary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                              item.trailing ??
-                                  Icon(
-                                    LucideIcons.chevronRight,
-                                    size: 15,
-                                    color: theme.textSecondary,
-                                  ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (!isLast)
-                      const Divider(
-                        height: 1,
-                        indent: 68,
-                        endIndent: 16,
-                        color: NovaColors.divider,
-                      ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _langTag(BuildContext context) {
@@ -854,13 +598,4 @@ class ProfileScreen extends StatelessWidget {
       },
     );
   }
-}
-
-class _Item {
-  final IconData icon;
-  final String label;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  const _Item(this.icon, this.label, {this.trailing, this.onTap});
 }
