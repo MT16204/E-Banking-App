@@ -14,7 +14,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.41.8" 
+          flutter-version: "3.41.8"
           channel: "stable"
           cache: true
 
@@ -22,7 +22,13 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --release --base-href /
+        run: |
+          flutter build web --release \
+            --base-href / \
+            --dart-define=APPWRITE_ENDPOINT=${{ secrets.APPWRITE_ENDPOINT }} \
+            --dart-define=APPWRITE_PROJECT_ID=${{ secrets.APPWRITE_PROJECT_ID }} \
+            --dart-define=APPWRITE_DATABASE_ID=${{ secrets.APPWRITE_DATABASE_ID }} \
+            --dart-define=APPWRITE_RESET_PASSWORD_FUNCTION_ID=${{ secrets.APPWRITE_RESET_PASSWORD_FUNCTION_ID }}
 
       - name: Install Vercel CLI
         run: npm install -g vercel

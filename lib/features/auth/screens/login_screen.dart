@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:banking_app/core/l10n/app_lang.dart';
 import 'package:banking_app/core/theme/colors.dart';
 import 'package:banking_app/core/theme/fonts.dart';
@@ -27,6 +27,19 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isObscure = true;
 
   late final AuthRepository _authRepo = authRepository;
+
+  static const _demoEmail = 'demo@novabank.com';
+  static const _demoPassword = 'Demo@12345';
+
+  void _fillDemoCredentials() {
+    _emailController.text = _demoEmail;
+    _passwordController.text = _demoPassword;
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+    });
+    _handleSignIn();
+  }
 
   void _handleForgotPassword() {
     final email = _emailController.text.trim();
@@ -210,6 +223,87 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       const SizedBox(height: 20),
+
+                      // Demo banner - chỉ hiện trên web
+                      if (kIsWeb) ...[
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: NovaColors.primaryGreen.withOpacity(0.08),
+                            border: Border.all(
+                              color: NovaColors.primaryGreen.withOpacity(0.4),
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    LucideIcons.badgeCheck,
+                                    size: 15,
+                                    color: NovaColors.primaryGreen,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    context.tr(
+                                      'Tài khoản Demo',
+                                      'Demo Account',
+                                    ),
+                                    style: NovaFonts.body.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: NovaColors.primaryGreen,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'Email: $_demoEmail',
+                                style: NovaFonts.body.copyWith(fontSize: 12),
+                              ),
+                              Text(
+                                context.tr(
+                                  'Mật khẩu: $_demoPassword',
+                                  'Password: $_demoPassword',
+                                ),
+                                style: NovaFonts.body.copyWith(fontSize: 12),
+                              ),
+                              const SizedBox(height: 10),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _fillDemoCredentials,
+                                  icon: const Icon(LucideIcons.logIn, size: 15),
+                                  label: Text(
+                                    context.tr(
+                                      'Dùng tài khoản Demo',
+                                      'Use Demo Account',
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: NovaColors.primaryGreen,
+                                    side: BorderSide(
+                                      color: NovaColors.primaryGreen,
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                    ),
+                                    textStyle: NovaFonts.body.copyWith(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       AuthPrimaryButton(
                         text: context.tr('Đăng nhập', 'Sign in'),
                         isLoading: _isLoading,
