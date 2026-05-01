@@ -9,6 +9,8 @@ import 'package:banking_app/core/l10n/app_lang.dart';
 import 'package:banking_app/core/theme/colors.dart';
 import 'package:banking_app/core/theme/fonts.dart';
 import 'package:banking_app/providers/user_provider.dart';
+import 'package:banking_app/widgets/analytics_month_navigator.dart';
+import 'package:banking_app/widgets/analytics_summary_overview.dart';
 import 'package:banking_app/widgets/header.dart';
 
 // ─── Danh mục ────────────────────────────────────────────
@@ -351,73 +353,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   // ─── Month navigator ──────────────────────────────────
   Widget _buildMonthNav(List<String> monthNames) {
-    final theme = NovaTheme.watch(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: theme.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.primaryMid.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: _prevMonth,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: theme.background,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                LucideIcons.chevronLeft,
-                size: 16,
-                color: theme.textPrimary,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  LucideIcons.calendar,
-                  size: 14,
-                  color: NovaColors.textSecondary,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  context.tr(
-                    'Tháng ${_selectedMonth.month}, ${_selectedMonth.year}',
-                    'Month ${_selectedMonth.month}, ${_selectedMonth.year}',
-                  ),
-                  style: NovaFonts.heading.copyWith(
-                    fontSize: 15,
-                    color: theme.textPrimary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: _nextMonth,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: theme.background,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                LucideIcons.chevronRight,
-                size: 16,
-                color: _isCurrentMonth()
-                    ? theme.primaryMid.withValues(alpha: 0.35)
-                    : theme.textPrimary,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return AnalyticsMonthNavigator(
+      selectedMonth: _selectedMonth,
+      isCurrentMonth: _isCurrentMonth(),
+      onPrevious: _prevMonth,
+      onNext: _nextMonth,
     );
   }
 
@@ -428,181 +368,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen>
 
   // ─── Summary bars ─────────────────────────────────────
   Widget _buildSummaryBars(_MonthData data, NumberFormat fmt) {
-    final theme = NovaTheme.watch(context);
-    final expChange = data.prevExpense > 0
-        ? (data.totalExpense - data.prevExpense) / data.prevExpense * 100
-        : (data.totalExpense > 0 ? 100.0 : 0.0);
-    final incChange = data.prevIncome > 0
-        ? (data.totalIncome - data.prevIncome) / data.prevIncome * 100
-        : (data.totalIncome > 0 ? 100.0 : 0.0);
-
-    final maxVal = math.max(data.totalExpense, data.totalIncome);
-    final expH = maxVal > 0 ? data.totalExpense / maxVal : 0.5;
-    final incH = maxVal > 0 ? data.totalIncome / maxVal : 0.5;
-    const maxBarH = 140.0;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.tr('Tổng quan thu chi', 'Income and expense overview'),
-          style: NovaFonts.heading.copyWith(
-            fontSize: 16,
-            color: theme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Consumer<UserProvider>(
-          builder: (_, provider, __) {
-            final balance = provider.wallet?.balance ?? 0;
-            return Text(
-              context.tr(
-                'Số dư: ${_formatShort(balance)} VND',
-                'Balance: ${_formatShort(balance)} VND',
-              ),
-              style: NovaFonts.body.copyWith(
-                fontSize: 13,
-                color: theme.textSecondary,
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            _buildBar(
-              label: context.tr('Chi tiêu', 'Expense'),
-              value: data.totalExpense,
-              change: expChange,
-              barHeight: maxBarH * expH,
-              color: NovaColors.yellow,
-              fmt: fmt,
-            ),
-            const SizedBox(width: 20),
-            _buildBar(
-              label: context.tr('Thu nhập', 'Income'),
-              value: data.totalIncome,
-              change: incChange,
-              barHeight: maxBarH * incH,
-              color: theme.primary,
-              fmt: fmt,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: theme.primaryLight,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Row(
-            children: [
-              Icon(LucideIcons.trendingUp, size: 16, color: theme.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  expChange >= 0
-                      ? context.tr(
-                          'Chi tiêu tăng ${expChange.toStringAsFixed(0)}% so với tháng trước',
-                          'Expenses increased ${expChange.toStringAsFixed(0)}% from last month',
-                        )
-                      : context.tr(
-                          'Chi tiêu giảm ${expChange.abs().toStringAsFixed(0)}% so với tháng trước',
-                          'Expenses decreased ${expChange.abs().toStringAsFixed(0)}% from last month',
-                        ),
-                  style: NovaFonts.body.copyWith(
-                    fontSize: 12,
-                    color: theme.primary,
-                  ),
-                ),
-              ),
-              Icon(LucideIcons.chevronRight, size: 14, color: theme.primary),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBar({
-    required String label,
-    required double value,
-    required double change,
-    required double barHeight,
-    required Color color,
-    required NumberFormat fmt,
-  }) {
-    final theme = NovaTheme.watch(context);
-    final isUp = change >= 0;
-    final h = barHeight.clamp(30.0, 140.0);
-    return Expanded(
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isUp ? Icons.arrow_upward : Icons.arrow_downward,
-                      size: 11,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '${change.abs().toStringAsFixed(0)}%',
-                      style: NovaFonts.body.copyWith(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  _formatShort(value),
-                  style: NovaFonts.numbers.copyWith(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          AnimatedBuilder(
-            animation: _anim,
-            builder: (_, __) => Container(
-              width: double.infinity,
-              height: h * _anim.value,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: NovaFonts.body.copyWith(
-              fontSize: 13,
-              color: theme.textSecondary,
-            ),
-          ),
-        ],
+    final balance = context.read<UserProvider>().wallet?.balance ?? 0;
+    return AnalyticsSummaryOverview(
+      totalExpense: data.totalExpense,
+      totalIncome: data.totalIncome,
+      prevExpense: data.prevExpense,
+      prevIncome: data.prevIncome,
+      balanceText: context.tr(
+        'Số dư: ${_formatShort(balance)} VND',
+        'Balance: ${_formatShort(balance)} VND',
       ),
+      animation: _anim,
+      formatShort: _formatShort,
     );
   }
 
