@@ -1,10 +1,13 @@
 # Banking App
 
+<p align="center">
+  <img src="/assets/images/logo.png" width="150" alt="Nova Logo" />
+</p>
+
 > Ứng dụng ngân hàng hiện đại được xây dựng bằng **Flutter** (đa nền tảng) và **Appwrite** (Backend-as-a-Service), hỗ trợ quản lý tài khoản, chuyển tiền và theo dõi giao dịch.  
 >
-> Xem Demo trên Mobile View (F12 → Toggle Device Toolbar)  
->  
-> 🔗 https://e-banking-app-umber.vercel.app
+> Xem Demo trên Mobile View (F12 → Toggle Device Toolbar)
+> - 🔗 https://e-banking-app-umber.vercel.app
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.x-54C5F8?logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?logo=dart&logoColor=white)](https://dart.dev)
