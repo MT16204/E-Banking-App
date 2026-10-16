@@ -69,7 +69,6 @@ void main() async {
 
   print("DEBUG_ENDPOINT: '${AppConfig.appwriteEndpoint}'");
   print("DEBUG_PROJECT: '${AppConfig.appwriteProjectId}'");
-  
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -78,8 +77,6 @@ void main() async {
       statusBarBrightness: Brightness.light,
     ),
   );
-
-  AppConfig.validate();
 
   client = Client()
       .setEndpoint(AppConfig.appwriteEndpoint)
@@ -116,7 +113,10 @@ void main() async {
     startRoute = '/home';
     isLoggedIn = true;
     await appearanceProvider.loadForUser(user.$id);
-  } catch (e) {
+  } catch (e, stackTrace) {
+    debugPrint('Startup account.get() failed: $e');
+    debugPrintStack(stackTrace: stackTrace);
+
     await appearanceProvider.load();
     startRoute = '/login';
   }
